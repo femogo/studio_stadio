@@ -7,7 +7,7 @@ import time
 
 import httpx
 import pytest
-from conftest import PORT, TOKEN, arrancar, esperar_run, parar, preparar_home
+from conftest import BASE, PORT, TOKEN, arrancar, esperar_run, parar, preparar_home
 
 URL = f"http://127.0.0.1:{PORT}"
 
@@ -167,14 +167,15 @@ def test_busy_pausa_y_detener(api):
             os.killpg(pg, 0)
 
 
+@pytest.mark.skipif(not (BASE / "cleo_0.png").exists(), reason="necesita los retratos de demo/ (no se publican)")
 def test_media_y_quick_video(api, server):
     assert api.get("/api/media", params={"path": "/etc/passwd"}).status_code == 403
     assert api.get("/api/media", params={"path": str(server / "settings.json")}).status_code == 403
-    r = api.get("/api/media", params={"path": "/opt/historico/demo/cleo_0.png"}, headers={"Range": "bytes=0-9"})
+    r = api.get("/api/media", params={"path": str(BASE / "cleo_0.png")}, headers={"Range": "bytes=0-9"})
     assert r.status_code == 206 and len(r.content) == 10
     assert any(i["name"] == "cleo_0.png" for i in api.get("/api/images").json())
     r = api.post("/api/quick-video", json={"personaje": "Napoleón", "origen_texto": "texto", "texto": "Hola Francia",
-                                           "imagen": "/opt/historico/demo/napoleon_demo.png", "voz": "em_alex",
+                                           "imagen": str(BASE / "napoleon_demo.png"), "voz": "em_alex",
                                            "iniciar": False})
     assert r.status_code == 201
     p = api.get(f"/api/projects/{r.json()['slug']}").json()

@@ -20,11 +20,10 @@ DEFAULT_SETTINGS = {
     "embed_model": "nomic-embed-text",
     "recursion_limit": 50, "max_concurrency": None, "durability": "async", "default_timeout": 900,
     "multitask_strategy": "reject",
-    "python_pesado": "/opt/historico/demo/.venv/bin/python",
-    "python_estudio": "/opt/historico/demo/studio/.venv-studio/bin/python",
+    "python_pesado": "", "python_estudio": "",   # vacío = demo/.venv y demo/studio/.venv-studio del clon
     "hilos_conservar": 100, "store_items_por_ns": 200, "mcp_servidores": {}, "gpu_procesos_compartidos": 2,
     "video": {"aviso": "Recreación ficticia generada con IA", "color": "0xE8C766", "voz": "ef_dora",
-              "retratos": "/opt/historico/demo"},
+              "retratos": ""},   # vacío = carpeta demo/
 }
 
 SETTINGS_SCHEMA = [

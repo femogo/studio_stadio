@@ -8,7 +8,7 @@
   "context_schema": [],
   "nodes": {
     "entrada": {"module": "entrada.py", "label": "Entrada", "x": 40, "y": 160,
-                "config": {"valores": {"url_rss": "https://www.rtve.es/api/noticias.rss", "palabras": 80}}},
+                "config": {"valores": {"url_rss": "https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada", "palabras": 80}}},
     "rss": {"module": "rss_noticias.py", "label": "Noticias", "x": 240, "y": 160,
             "config": {"url": "{url_rss}", "max": 5}},
     "resumen": {"module": "llm_ollama.py", "label": "Resumen", "x": 440, "y": 160,

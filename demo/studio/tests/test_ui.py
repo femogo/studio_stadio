@@ -1,6 +1,7 @@
 """Pasos 1g–1h: GUI con Playwright (Chromium existente). Criterios 7, 8, 9 y 11."""
 import asyncio
 import time
+from pathlib import Path
 
 import pytest
 from conftest import PORT, TOKEN, esperar_run
@@ -14,7 +15,7 @@ URL = f"http://127.0.0.1:{PORT}"
 async def browser():
     from playwright.async_api import async_playwright
     async with async_playwright() as p:
-        b = await p.chromium.launch(executable_path=CH)
+        b = await p.chromium.launch(executable_path=CH if Path(CH).exists() else None)  # si no, el de `playwright install`
         yield b
         await b.close()
 

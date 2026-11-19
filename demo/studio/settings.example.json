@@ -17,14 +17,14 @@
   "durability": "async",
   "default_timeout": 900,
   "multitask_strategy": "reject",
-  "python_pesado": "/opt/historico/demo/.venv/bin/python",
-  "python_estudio": "/opt/historico/demo/studio/.venv-studio/bin/python",
+  "python_pesado": "",
+  "python_estudio": "",
   "hilos_conservar": 100,
   "store_items_por_ns": 200,
   "video": {
     "aviso": "Recreación ficticia generada con IA",
     "color": "0xE8C766",
     "voz": "ef_dora",
-    "retratos": "/opt/historico/demo"
+    "retratos": ""
   }
 }

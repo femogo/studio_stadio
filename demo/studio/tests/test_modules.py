@@ -83,7 +83,8 @@ def lanzar(py, mod, tmp_path, state, cfg, home=None):
     return p.returncode, p.stdout.splitlines()
 
 
-@pytest.mark.parametrize("py", [PY_ESTUDIO, PY_PESADO])
+@pytest.mark.parametrize("py", [PY_ESTUDIO, pytest.param(PY_PESADO, marks=pytest.mark.skipif(
+    not Path(PY_PESADO).exists(), reason="necesita el entorno pesado demo/.venv (vídeo)"))])
 def test_runner_protocolo(tmp_path, home, py):
     rc, lines = lanzar(py, home / "modules/prueba_lenta.py", tmp_path, {}, {"segundos": 0.3, "clave_salida": "z"}, home)
     assert rc == 0

@@ -1011,7 +1011,10 @@ def build(project: dict, *, assistant: dict | None = None, checkpointer=None, st
     canales = v["canales"]
     fields = {}
     for k, r in canales.items():
-        fields[k] = Annotated[Any, REDUCER_FN[r]] if r in REDUCER_FN else Any
+        # messages con tipo list: con Any, LangGraph guarda la primera escritura sin pasar por add_messages (dicts sin id)
+        # y un agente la devolvía como mensaje nuevo, duplicando el primer mensaje del hilo
+        fields[k] = (Annotated[list, add_messages] if r == "messages" else
+                     Annotated[Any, REDUCER_FN[r]] if r in REDUCER_FN else Any)
     Estado = TypedDict("Estado", fields, total=False)
     g = StateGraph(Estado)
     nodes, edges = project.get("nodes") or {}, project.get("edges") or []

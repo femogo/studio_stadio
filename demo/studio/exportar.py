@@ -145,8 +145,11 @@ def zip_proyecto(project: dict, registry, settings: dict, load_project, home: Pa
                 z.write(f, raiz + "modules/tools/" + f.name)
         for p in proyectos:
             z.writestr(raiz + f"projects/{p['slug']}.json", json.dumps(p, ensure_ascii=False, indent=2))
-        z.writestr(raiz + "settings.json",
-                   json.dumps({k: v for k, v in settings.items() if k != "token"}, ensure_ascii=False, indent=2))
+        ajustes = {k: v for k, v in settings.items() if k != "token"}
+        # intérpretes vacíos = los del estudio que exporta (el grafo exportado no tiene .venv propio)
+        ajustes["python_estudio"] = settings.get("python_estudio") or str(STUDIO / ".venv-studio/bin/python")
+        ajustes["python_pesado"] = settings.get("python_pesado") or str(STUDIO.parent / ".venv/bin/python")
+        z.writestr(raiz + "settings.json", json.dumps(ajustes, ensure_ascii=False, indent=2))
         z.writestr(raiz + "graph.py", GRAPH_PY.format(name=project.get("name") or slug, slug=slug))
         if not motivos:
             z.writestr(raiz + "funcional.py", funcional_py(project))

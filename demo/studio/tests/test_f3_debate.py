@@ -1,9 +1,10 @@
 """Fase 3, criterio transversal T1: plantilla `debate` (subproyecto + Send + concatenar_video) (DISENO.md §13.5)."""
 import json
 import subprocess
+from pathlib import Path
 
 import pytest
-from conftest import esperar_run
+from conftest import PY_PESADO, esperar_run
 from test_f2_api import estado, hilo, lanzar, py_node
 
 INTERVENCIONES = [{"personaje": "Cleopatra VII", "texto": "uno"}, {"personaje": "Napoleón", "texto": "dos"},
@@ -40,6 +41,7 @@ def crear_debate(api, nombre):
     return p, hijo
 
 
+@pytest.mark.skipif(not Path(PY_PESADO).exists(), reason="concatenar_video usa el entorno pesado demo/.venv (vídeo)")
 def test_t1_debate_topologia_sin_gpu(api):
     assert any(t["id"] == "debate" and t["fase"] == 3 for t in api.get("/api/templates").json())
     p, hijo = crear_debate(api, "Debate prueba")
