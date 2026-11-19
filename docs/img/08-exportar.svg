@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 821 410" width="821" role="img" aria-label=".venv/bin/python ejecutar.py">
+<rect width="821" height="410" rx="10" fill="#0d1117" stroke="#30363d"/>
+<path d="M0 34h821" stroke="#30363d"/>
+<circle cx="20" cy="17" r="6" fill="#ff5f57"/><circle cx="40" cy="17" r="6" fill="#febc2e"/><circle cx="60" cy="17" r="6" fill="#28c840"/>
+<text x="410.5" y="22" text-anchor="middle" fill="#8b949e" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">.venv/bin/python ejecutar.py</text>
+<g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,Liberation Mono,monospace" font-size="13" xml:space="preserve">
+<text x="18" y="52" fill="#7ee787" font-weight="600">$ .venv/bin/python ejecutar.py</text>
+<text x="18" y="71" fill="#e6edf3">entrada   → {'texto': '', 'critica': '(sin crítica todavía)', 'puntuacion': 0, 'iteracion': 0}</text>
+<text x="18" y="90" fill="#e6edf3">escritor  → {'texto': 'La batalla naval de Lepanto en 1571 fue crucial, al detener la expansión</text>
+<text x="18" y="109" fill="#e6edf3">  otomana en Europa occidental. La alianza cristiana derrotó a la flota otomana en el Estrecho de</text>
+<text x="18" y="128" fill="#e6edf3">  Corinto [...]</text>
+<text x="18" y="147" fill="#e6edf3">critico   → {'puntuacion': 7, 'critica': 'Falta una referencia a los detalles específicos o cifras</text>
+<text x="18" y="166" fill="#e6edf3">  que puedan hacer más convincente el argumento sobre su importancia.'}</text>
+<text x="18" y="185" fill="#e6edf3">contador  → {'iteracion': 1}</text>
+<text x="18" y="204" fill="#e6edf3">escritor  → {'texto': 'La batalla naval de Lepanto en 1571 fue decisiva, con la flota [...]</text>
+<text x="18" y="223" fill="#e6edf3">critico   → {'puntuacion': 7, 'critica': 'Falta una referencia a la importancia estratégica de la</text>
+<text x="18" y="242" fill="#e6edf3">  victoria y cómo cambió el curso de las relaciones entre Europa y el Imperio Otomano.'}</text>
+<text x="18" y="261" fill="#e6edf3">contador  → {'iteracion': 2}</text>
+<text x="18" y="280" fill="#e6edf3">escritor  → {'texto': 'La batalla naval de Lepanto en 1571 fue decisiva, con la flota [...]</text>
+<text x="18" y="299" fill="#e6edf3">critico   → {'puntuacion': 8, 'critica': 'Aunque el párrafo es claro y conciso, podría mejorar al</text>
+<text x="18" y="318" fill="#e6edf3">  incluir datos específicos sobre las fuerzas involucradas o los detalles de la batalla para</text>
+<text x="18" y="337" fill="#e6edf3">  aumentar su impacto.'}</text>
+<text x="18" y="356" fill="#e6edf3">contador  → {'iteracion': 3}</text>
+<text x="18" y="375" fill="#e6edf3">salida    → None</text>
+</g></svg>
