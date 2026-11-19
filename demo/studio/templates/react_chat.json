@@ -1,0 +1,32 @@
+{
+  "name": "Agente con herramientas (chat)",
+  "desc": "Agente con herramientas (calculadora, memoria a largo plazo, confirmación humana) en modo Chat.",
+  "template": "react_chat",
+  "icon": "🤖",
+  "fase": 2,
+  "state_schema": {
+    "messages": {"reducer": "messages", "input": true, "output": true}
+  },
+  "context_schema": [
+    {"key": "usuario", "label": "Usuario", "type": "text", "default": "anonimo",
+     "help": "Namespace de la memoria a largo plazo"}
+  ],
+  "nodes": {
+    "agente": {
+      "module": "agente_react.py",
+      "label": "Agente",
+      "x": 260,
+      "y": 160,
+      "config": {
+        "sistema": "Eres un asistente útil que responde en español. Para cualquier cuenta usa la herramienta calculadora. Cuando el usuario te cuente algo sobre sí mismo (su nombre, gustos…), guárdalo con recordar. Si te pregunta algo sobre él, usa consultar_memoria antes de responder. Antes de una acción irreversible, usa pedir_confirmacion.",
+        "herramientas": "calculadora, recordar, consultar_memoria, pedir_confirmacion",
+        "temperatura": 0
+      }
+    }
+  },
+  "edges": [
+    {"id": "e1", "src": "__start__", "dst": "agente"},
+    {"id": "e2", "src": "agente", "dst": "__end__"}
+  ],
+  "layout": {"zoom": 1.0, "pan": [0, 0]}
+}

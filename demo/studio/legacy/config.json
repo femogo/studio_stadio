@@ -1,0 +1,51 @@
+{
+  "entrada": {
+    "modo": "texto",
+    "personaje": "Cleopatra VII",
+    "texto": "Napoleón, tú llegaste a Egipto con cañones y sabios. Yo lo goberné veinte años.",
+    "tema": "Responde a Napoleón, que presume de su expedición a Egipto de 1798."
+  },
+  "guion": {
+    "modelo": "qwen2.5:7b",
+    "ollama_url": "http://localhost:11434",
+    "palabras": 14,
+    "temperatura": 0.7,
+    "plantilla": "Eres {personaje} en un debate histórico televisado. {tema} Responde con UNA intervención de unas {palabras} palabras, en español, en primera persona, con datos históricos reales y el tono propio del personaje. Solo el texto hablado, sin comillas ni acotaciones.",
+    "breakpoint": false
+  },
+  "revision": {
+    "activo": true,
+    "breakpoint": false
+  },
+  "voz": {
+    "voz": "ef_dora",
+    "velocidad": 0.95,
+    "breakpoint": false
+  },
+  "retrato": {
+    "modo": "sdxl",
+    "imagen": "cleo_0.png",
+    "prompt": "photorealistic portrait of Cleopatra VII, ancient Egyptian queen, looking directly at camera, frontal, head and shoulders, neutral closed mouth, olive skin, dark braided hair with gold diadem and cobra uraeus, gold broad collar necklace, inside dim palace TV debate studio, soft cinematic key light, 85mm, sharp focus",
+    "negativo": "cartoon, painting, illustration, open mouth, teeth, profile, side view, hands, text, watermark, blurry, deformed, celebrity",
+    "semilla": 7,
+    "pasos": 30,
+    "guidance": 6.5,
+    "breakpoint": false
+  },
+  "lipsync": {
+    "tam": "512",
+    "mejora": true,
+    "quieto": true,
+    "expresion": 1.1,
+    "breakpoint": false
+  },
+  "montaje": {
+    "nombre": "CLEOPATRA VII",
+    "subtitulo": "Reina de Egipto (51–30 a.C.)",
+    "aviso": "Recreación ficticia generada con IA",
+    "color": "0xE8C766",
+    "crf": 18,
+    "breakpoint": false
+  },
+  "resultado": {}
+}

@@ -1,0 +1,195 @@
+{
+  "name": "Clip de personaje",
+  "desc": "Un personaje histórico habla a cámara: guion (fijo o LLM con revisión), voz, retrato, lip-sync y montaje.",
+  "template": "clip_personaje",
+  "state_schema": {},
+  "context_schema": [],
+  "nodes": {
+    "entrada": {
+      "module": "entrada.py",
+      "label": "Entrada",
+      "x": 40,
+      "y": 200,
+      "config": {
+        "valores": {
+          "origen_texto": "texto",
+          "personaje": "Cleopatra VII",
+          "texto": "Napoleón, tú llegaste a Egipto con cañones y sabios. Yo lo goberné veinte años.",
+          "tema": "Responde a Napoleón, que presume de su expedición a Egipto de 1798.",
+          "palabras": 14,
+          "nombre": "CLEOPATRA VII",
+          "subtitulo": "Reina de Egipto (51–30 a.C.)",
+          "comentario_revision": "",
+          "rechazos": 0
+        }
+      }
+    },
+    "guion": {
+      "module": "llm_ollama.py",
+      "label": "Guion",
+      "x": 260,
+      "y": 60,
+      "config": {
+        "prompt": "Eres {personaje} en un debate histórico televisado. {tema} Responde con UNA intervención de unas {palabras} palabras, en español, en primera persona, con datos históricos reales y el tono propio del personaje. Solo el texto hablado, sin comillas ni acotaciones.\nVersión anterior (si la hay): {texto}\nComentario del revisor (si lo hay): {comentario_revision}",
+        "campo_salida": "texto",
+        "formato": "texto",
+        "temperatura": 0.7,
+        "num_predict": 200
+      }
+    },
+    "revision": {
+      "module": "revision_humana.py",
+      "label": "Revisión",
+      "x": 480,
+      "y": 60,
+      "config": {
+        "campo": "texto",
+        "mensaje": "Revisa el guion antes de generar el vídeo",
+        "campo_comentario": "comentario_revision"
+      }
+    },
+    "voz": {
+      "module": "tts_kokoro.py",
+      "label": "Voz",
+      "x": 700,
+      "y": 200,
+      "config": {
+        "voz": "ef_dora",
+        "velocidad": 0.95
+      }
+    },
+    "retrato": {
+      "module": "retrato_sdxl.py",
+      "label": "Retrato",
+      "x": 480,
+      "y": 340,
+      "config": {
+        "modo": "existente",
+        "imagen": "cleo_0.png"
+      }
+    },
+    "lipsync": {
+      "module": "lipsync_sadtalker.py",
+      "label": "Lip-sync",
+      "x": 920,
+      "y": 270,
+      "config": {
+        "tam": 512,
+        "mejora": true,
+        "quieto": true,
+        "expresion": 1.1
+      }
+    },
+    "montaje": {
+      "module": "montaje_video.py",
+      "label": "Montaje",
+      "x": 1140,
+      "y": 270,
+      "config": {
+        "crf": 18
+      }
+    },
+    "salida": {
+      "module": "salida.py",
+      "label": "Salida",
+      "x": 1360,
+      "y": 270,
+      "config": {
+        "mostrar": [
+          {
+            "clave": "video_final",
+            "como": "video"
+          },
+          {
+            "clave": "texto",
+            "como": "texto"
+          }
+        ]
+      }
+    }
+  },
+  "edges": [
+    {
+      "id": "e1",
+      "src": "__start__",
+      "dst": "entrada"
+    },
+    {
+      "id": "e2",
+      "src": "entrada",
+      "dst": "retrato"
+    },
+    {
+      "id": "e3",
+      "src": "entrada",
+      "dst": "guion",
+      "cond": "s.get('origen_texto') == 'tema'",
+      "label": "tema"
+    },
+    {
+      "id": "e4",
+      "src": "entrada",
+      "dst": "voz",
+      "cond": "else",
+      "label": "texto fijo"
+    },
+    {
+      "id": "e5",
+      "src": "guion",
+      "dst": "revision"
+    },
+    {
+      "id": "e6",
+      "src": "revision",
+      "dst": "voz",
+      "cond": "s.get('aprobado')",
+      "label": "aprobado"
+    },
+    {
+      "id": "e7",
+      "src": "revision",
+      "dst": "guion",
+      "cond": "not s.get('aprobado') and (s.get('rechazos') or 0) < 3",
+      "label": "reescribir"
+    },
+    {
+      "id": "e8",
+      "src": "revision",
+      "dst": "__end__",
+      "cond": "else",
+      "label": "3 rechazos"
+    },
+    {
+      "id": "e9",
+      "src": [
+        "voz",
+        "retrato"
+      ],
+      "dst": "lipsync"
+    },
+    {
+      "id": "e10",
+      "src": "lipsync",
+      "dst": "montaje"
+    },
+    {
+      "id": "e11",
+      "src": "montaje",
+      "dst": "salida"
+    },
+    {
+      "id": "e12",
+      "src": "salida",
+      "dst": "__end__"
+    }
+  ],
+  "layout": {
+    "zoom": 1.0,
+    "pan": [
+      0,
+      0
+    ]
+  },
+  "icon": "🎬",
+  "fase": 1
+}

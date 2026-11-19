@@ -1,0 +1,123 @@
+{
+  "name": "Escritor con autocrítica",
+  "desc": "Un LLM escribe, otro lo puntúa en JSON y se reescribe hasta puntuación ≥ 8 o 3 iteraciones.",
+  "template": "escritor_critico",
+  "state_schema": {},
+  "context_schema": [],
+  "nodes": {
+    "entrada": {
+      "module": "entrada.py",
+      "label": "Entrada",
+      "x": 40,
+      "y": 180,
+      "config": {
+        "valores": {
+          "tema": "Por qué Cleopatra fue una gobernante brillante",
+          "texto": "",
+          "critica": "(sin crítica todavía)",
+          "puntuacion": 0,
+          "iteracion": 0
+        }
+      }
+    },
+    "escritor": {
+      "module": "llm_ollama.py",
+      "label": "Escritor",
+      "x": 260,
+      "y": 180,
+      "config": {
+        "prompt": "Escribe un párrafo de unas 60 palabras para un debate histórico sobre: {tema}\nTexto anterior: {texto}\nCrítica recibida: {critica}\nDevuelve solo el párrafo.",
+        "campo_salida": "texto",
+        "formato": "texto",
+        "temperatura": 0.8
+      }
+    },
+    "critico": {
+      "module": "llm_ollama.py",
+      "label": "Crítico",
+      "x": 480,
+      "y": 180,
+      "config": {
+        "prompt": "Evalúa este párrafo para un debate histórico (rigor, tono y gancho). Responde SOLO con JSON {\"puntuacion\": entero de 1 a 10, \"critica\": \"una frase\"}.\nPárrafo: {texto}",
+        "formato": "json",
+        "claves_json": "puntuacion,critica",
+        "temperatura": 0.2
+      }
+    },
+    "contador": {
+      "module": "codigo_python.py",
+      "label": "Contador",
+      "x": 700,
+      "y": 180,
+      "config": {
+        "codigo": "return {\"iteracion\": int(state.get(\"iteracion\") or 0) + 1}",
+        "entradas": "iteracion",
+        "salidas": "iteracion"
+      }
+    },
+    "salida": {
+      "module": "salida.py",
+      "label": "Salida",
+      "x": 920,
+      "y": 180,
+      "config": {
+        "mostrar": [
+          {
+            "clave": "texto",
+            "como": "texto"
+          }
+        ]
+      }
+    }
+  },
+  "edges": [
+    {
+      "id": "e1",
+      "src": "__start__",
+      "dst": "entrada"
+    },
+    {
+      "id": "e2",
+      "src": "entrada",
+      "dst": "escritor"
+    },
+    {
+      "id": "e3",
+      "src": "escritor",
+      "dst": "critico"
+    },
+    {
+      "id": "e4",
+      "src": "critico",
+      "dst": "contador"
+    },
+    {
+      "id": "e5",
+      "src": "contador",
+      "dst": "salida",
+      "cond": "int(s.get('puntuacion') or 0) >= 8 or (s.get('iteracion') or 0) >= 3",
+      "label": "listo"
+    },
+    {
+      "id": "e6",
+      "src": "contador",
+      "dst": "escritor",
+      "cond": "else",
+      "label": "reescribir"
+    },
+    {
+      "id": "e7",
+      "src": "salida",
+      "dst": "__end__"
+    }
+  ],
+  "layout": {
+    "zoom": 1.0,
+    "pan": [
+      0,
+      0
+    ]
+  },
+  "icon": "✍",
+  "fase": 1
+}

@@ -1,0 +1,60 @@
+{
+  "name": "Vacío",
+  "desc": "Punto de partida mínimo.",
+  "template": "vacio",
+  "state_schema": {},
+  "context_schema": [],
+  "nodes": {
+    "entrada": {
+      "module": "entrada.py",
+      "label": "Entrada",
+      "x": 80,
+      "y": 160,
+      "config": {
+        "valores": {
+          "texto": "Hola"
+        }
+      }
+    },
+    "salida": {
+      "module": "salida.py",
+      "label": "Salida",
+      "x": 340,
+      "y": 160,
+      "config": {
+        "mostrar": [
+          {
+            "clave": "texto",
+            "como": "texto"
+          }
+        ]
+      }
+    }
+  },
+  "edges": [
+    {
+      "id": "e1",
+      "src": "__start__",
+      "dst": "entrada"
+    },
+    {
+      "id": "e2",
+      "src": "entrada",
+      "dst": "salida"
+    },
+    {
+      "id": "e3",
+      "src": "salida",
+      "dst": "__end__"
+    }
+  ],
+  "layout": {
+    "zoom": 1.0,
+    "pan": [
+      0,
+      0
+    ]
+  },
+  "icon": "◇",
+  "fase": 1
+}

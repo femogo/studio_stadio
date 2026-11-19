@@ -1,0 +1,30 @@
+{
+  "host": "0.0.0.0",
+  "port": 8790,
+  "token": "",
+  "nombre": "Estudio de agentes",
+  "tema": "claro",
+  "abrir_interrupts": true,
+  "sonido": true,
+  "notificaciones": false,
+  "snap": 10,
+  "ollama_url": "http://localhost:11434",
+  "ollama_model": "qwen2.5:7b",
+  "keep_alive": "5m",
+  "embed_model": "nomic-embed-text",
+  "recursion_limit": 50,
+  "max_concurrency": null,
+  "durability": "async",
+  "default_timeout": 900,
+  "multitask_strategy": "reject",
+  "python_pesado": "/opt/historico/demo/.venv/bin/python",
+  "python_estudio": "/opt/historico/demo/studio/.venv-studio/bin/python",
+  "hilos_conservar": 100,
+  "store_items_por_ns": 200,
+  "video": {
+    "aviso": "Recreación ficticia generada con IA",
+    "color": "0xE8C766",
+    "voz": "ef_dora",
+    "retratos": "/opt/historico/demo"
+  }
+}

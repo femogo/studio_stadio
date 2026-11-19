@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estudio · Debates históricos</title>
+<style>
+:root{
+  --bg:#0f1115; --panel:#161920; --panel2:#1c2029; --line:#2a2f3a; --fg:#e8e6e1; --mut:#8b909c;
+  --gold:#e8c766; --off:#3a3f4a; --orange:#ff8a1f; --green:#2fbf71; --red:#e5484d; --blue:#5aa9ff;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;
+  display:grid;grid-template-rows:auto 1fr 1fr;height:100vh;overflow:hidden}
+button{font:inherit;color:inherit;background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:7px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+button:hover:not(:disabled){border-color:var(--mut)}
+button:disabled{opacity:.35;cursor:not-allowed}
+button.primary{background:var(--gold);color:#1a1405;border-color:var(--gold);font-weight:600}
+button.danger{border-color:#6b2a2c;color:#ffb3b5}
+input,textarea,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;
+  padding:7px 9px;width:100%}
+textarea{resize:vertical;min-height:70px}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--gold);outline-offset:-1px}
+
+/* ---------- header */
+header{display:flex;align-items:center;gap:16px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel);flex-wrap:wrap}
+header h1{font-size:15px;margin:0;letter-spacing:.02em;white-space:nowrap}
+header h1 span{color:var(--gold)}
+.controls{display:flex;gap:8px}
+.overall{flex:1;min-width:220px;display:flex;align-items:center;gap:12px}
+.bar{height:8px;background:var(--off);border-radius:99px;overflow:hidden;flex:1}
+.bar > i{display:block;height:100%;width:0;background:var(--orange);transition:width .25s}
+.pill{font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mut);white-space:nowrap}
+.pill.running,.pill.waiting,.pill.paused{color:var(--orange);border-color:var(--orange)}
+.pill.done{color:var(--green);border-color:var(--green)}
+.pill.error{color:var(--red);border-color:var(--red)}
+.meta{font:12px var(--mono);color:var(--mut);white-space:nowrap}
+
+/* ---------- graph */
+#top{position:relative;border-bottom:1px solid var(--line);min-height:0;
+  background:radial-gradient(circle at 1px 1px,#222733 1px,transparent 0) 0 0/22px 22px}
+#graph{width:100%;height:100%;display:block}
+.legend{position:absolute;left:16px;bottom:10px;display:flex;gap:14px;font-size:12px;color:var(--mut)}
+.legend b{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.hint{position:absolute;right:16px;bottom:10px;font-size:12px;color:var(--mut)}
+.node{cursor:pointer}
+.node rect.box{stroke-width:2;transition:fill .2s,stroke .2s}
+.node:hover rect.box{filter:brightness(1.25)}
+.node text{pointer-events:none}
+.node .title{font-weight:600;font-size:15px;fill:var(--fg)}
+.node .sub{font-size:11px;fill:var(--mut)}
+.node .pct{font:11px var(--mono);fill:var(--mut)}
+.node.pending .title{fill:#9aa0ab}
+.node.running rect.box,.node.waiting rect.box{animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{stroke-opacity:.35}}
+.node.selected rect.box{stroke:var(--gold)!important}
+.edge{fill:none;stroke:var(--off);stroke-width:2}
+.edge.done{stroke:var(--green)}
+.edge.active{stroke:var(--orange);stroke-dasharray:6 6;animation:flow .6s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-12}}
+
+/* ---------- bottom */
+#bottom{display:grid;grid-template-columns:1.25fr 1fr;min-height:0}
+.videoPane{padding:14px 18px;display:flex;flex-direction:column;gap:10px;min-height:0;border-right:1px solid var(--line)}
+.videoPane .row{display:flex;gap:10px;align-items:center}
+.videoPane select{width:auto;flex:1}
+.stage{flex:1;min-height:0;background:#000;border-radius:10px;display:grid;place-items:center;overflow:hidden;position:relative}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.stage .empty{color:var(--mut);text-align:center;padding:20px}
+.transcript{padding:14px 22px;overflow:auto;min-height:0}
+.transcript h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:0 0 10px}
+.transcript .who{font-family:Georgia,serif;color:var(--gold);font-size:20px;margin-bottom:6px}
+.transcript .txt{font-family:Georgia,serif;font-size:21px;line-height:1.55}
+.transcript .txt.live::after{content:"▍";color:var(--orange);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.transcript dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:12px;color:var(--mut);margin-top:18px}
+.transcript dd{margin:0;font-family:var(--mono);color:var(--fg);word-break:break-all}
+
+/* ---------- drawer */
+#drawer{position:fixed;top:0;right:0;height:100vh;width:min(560px,100vw);background:var(--panel);border-left:1px solid var(--line);
+  transform:translateX(100%);transition:transform .22s ease;display:flex;flex-direction:column;z-index:10;box-shadow:-20px 0 40px #0008}
+#drawer.open{transform:none}
+.dh{padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+.dh .r1{display:flex;align-items:center;gap:10px}
+.dh h3{margin:0;font-size:18px;flex:1}
+.dh p{margin:6px 0 10px;color:var(--mut);font-size:13px}
+.x{background:none;border:none;font-size:22px;padding:2px 8px;color:var(--mut)}
+.tabs{display:flex;gap:2px;padding:0 12px;border-bottom:1px solid var(--line)}
+.tabs button{border:none;background:none;border-bottom:2px solid transparent;border-radius:0;color:var(--mut);padding:10px 12px}
+.tabs button.on{color:var(--fg);border-bottom-color:var(--gold)}
+.db{flex:1;overflow:auto;padding:16px 18px;min-height:0}
+.df{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.df .msg{font-size:12px;color:var(--mut);flex:1}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--mut);margin-bottom:5px}
+.field small{display:block;color:var(--mut);font-size:11px;margin-top:4px}
+.field.check label{display:flex;gap:8px;align-items:center;color:var(--fg);font-size:14px;cursor:pointer}
+.field.check input{width:auto}
+.field.bp{border:1px dashed var(--line);border-radius:8px;padding:10px 12px}
+.logs{font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word;background:var(--bg);border:1px solid var(--line);
+  border-radius:8px;padding:10px;min-height:100%;margin:0;color:#c9ccd3}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:12px;margin-bottom:14px}
+.kv dt{color:var(--mut)} .kv dd{margin:0;font-family:var(--mono)}
+.err{background:#3a1414;border:1px solid var(--red);color:#ffc9ca;border-radius:8px;padding:10px;font:12px var(--mono);margin-bottom:12px;white-space:pre-wrap}
+.review{background:#2b1d0d;border:1px solid var(--orange);border-radius:10px;padding:12px;margin-bottom:14px}
+.review h4{margin:0 0 8px;color:var(--orange)}
+#stateEdit{font:12px/1.5 var(--mono);min-height:320px}
+.nodebar{height:6px;background:var(--off);border-radius:99px;overflow:hidden}
+.nodebar i{display:block;height:100%;width:0;transition:width .25s}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);
+  padding:9px 16px;border-radius:8px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media (max-width:800px){
+  body{grid-template-rows:auto 45vh auto;overflow:auto;height:auto}
+  #bottom{grid-template-columns:1fr} .videoPane{border-right:none;border-bottom:1px solid var(--line)} .stage{min-height:220px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Estudio <span>·</span> Debates históricos</h1>
+  <div class="controls">
+    <button id="bPlay" class="primary" title="Iniciar pipeline">▶ Iniciar</button>
+    <button id="bPause" title="Pausar antes del siguiente nodo">⏸ Pausar</button>
+    <button id="bResume" title="Continuar">⏵ Continuar</button>
+    <button id="bStop" class="danger" title="Detener y matar el proceso en curso">■ Detener</button>
+  </div>
+  <div class="overall">
+    <span class="pill" id="status">inactivo</span>
+    <div class="bar"><i id="overallBar"></i></div>
+    <span class="meta" id="overallPct">0%</span>
+    <span class="meta" id="elapsed"></span>
+  </div>
+</header>
+
+<section id="top">
+  <svg id="graph" viewBox="0 0 1220 330" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#4a5060"/></marker>
+    </defs>
+    <g id="edges"></g><g id="nodes"></g>
+  </svg>
+  <div class="legend">
+    <span><b style="background:var(--off)"></b>pendiente</span>
+    <span><b style="background:var(--orange)"></b>ejecutando / en pausa</span>
+    <span><b style="background:var(--green)"></b>correcto</span>
+    <span><b style="background:var(--red)"></b>error</span>
+    <span><b style="background:var(--blue)"></b>breakpoint</span>
+  </div>
+  <div class="hint">Clic en un nodo para configurarlo y ver su proceso</div>
+</section>
+
+<section id="bottom">
+  <div class="videoPane">
+    <div class="row">
+      <select id="runSel"><option value="">Ejecución actual</option></select>
+      <button id="bRefresh" title="Actualizar lista">↻</button>
+    </div>
+    <div class="stage" id="stage"><div class="empty">El vídeo aparecerá aquí al terminar el pipeline.</div></div>
+  </div>
+  <div class="transcript" id="transcript"></div>
+</section>
+
+<aside id="drawer" aria-hidden="true">
+  <div class="dh">
+    <div class="r1"><h3 id="dTitle"></h3><span class="pill" id="dStatus"></span><button class="x" id="dClose" aria-label="Cerrar">×</button></div>
+    <p id="dDesc"></p>
+    <div class="nodebar"><i id="dBar"></i></div>
+  </div>
+  <div class="tabs">
+    <button data-tab="config" class="on">Configuración</button>
+    <button data-tab="logs">Proceso</button>
+    <button data-tab="state">Estado</button>
+  </div>
+  <div class="db" id="dBody"></div>
+  <div class="df" id="dFoot"></div>
+</aside>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const STATUS_TXT = {pending:"pendiente",running:"ejecutando",paused:"en pausa",waiting:"esperando",done:"correcto",
+  skipped:"omitido",error:"error",stopped:"detenido",idle:"inactivo"};
+const COL = {pending:["#1b1e25","#3a3f4a"],running:["#3a2410","#ff8a1f"],paused:["#1b1e25","#ff8a1f"],
+  waiting:["#3a2410","#ff8a1f"],done:["#0f2c1b","#2fbf71"],skipped:["#14211a","#2fbf71"],
+  error:["#3a1414","#e5484d"],stopped:["#2a1a1a","#9a5555"]};
+const W = 132, H = 74;
+const POS = {entrada:[20,128],guion:[200,48],revision:[370,48],voz:[540,48],retrato:[455,208],
+  lipsync:[730,128],montaje:[900,128],resultado:[1068,128]};
+const EDGES = [["entrada","guion"],["guion","revision"],["revision","voz"],["voz","lipsync"],
+  ["entrada","retrato"],["retrato","lipsync"],["lipsync","montaje"],["montaje","resultado"]];
+
+let SCHEMA = null, S = null, open = null, tab = "config", formDirty = false, selectedRun = "", lastVideo = "";
+
+async function api(path, method="GET", body){
+  const r = await fetch(path, {method, headers: body!==undefined?{"Content-Type":"application/json"}:{},
+    body: body!==undefined?JSON.stringify(body):undefined});
+  if(!r.ok){ let m = r.statusText; try{ m = (await r.json()).detail || m }catch(e){}; toast("⚠ " + m); throw new Error(m) }
+  return r.json();
+}
+function toast(m){ const t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),2200) }
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtT = s => s==null?"—":(s<60? s.toFixed(1)+" s" : Math.floor(s/60)+" min "+Math.round(s%60)+" s");
+const fileUrl = p => { if(!p) return ""; const i = p.indexOf("/studio/runs/"); return i<0? "" : p.slice(i+7) };
+
+/* ---------------------------------------------------------------- graph */
+function buildGraph(){
+  const eg = $("#edges"), ng = $("#nodes");
+  eg.innerHTML = EDGES.map(([a,b]) => {
+    const [ax,ay]=POS[a],[bx,by]=POS[b]; const x1=ax+W,y1=ay+H/2,x2=bx-4,y2=by+H/2,dx=(x2-x1)/2;
+    return `<path class="edge" id="e-${a}-${b}" marker-end="url(#arr)" d="M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}"/>`;
+  }).join("");
+  ng.innerHTML = SCHEMA.all.map(id => { const [x,y]=POS[id]; return `
+    <g class="node pending" id="n-${id}" transform="translate(${x},${y})" tabindex="0" role="button" aria-label="${SCHEMA.nodes[id].label}">
+      <rect class="box" width="${W}" height="${H}" rx="12"/>
+      <text class="title" x="14" y="26">${SCHEMA.nodes[id].label}</text>
+      <text class="sub" x="14" y="44">pendiente</text>
+      <text class="pct" x="${W-14}" y="26" text-anchor="end"></text>
+      <rect x="14" y="56" width="${W-28}" height="6" rx="3" fill="#2a2f3a"/>
+      <rect class="pb" x="14" y="56" width="0" height="6" rx="3"/>
+      <g class="bp" style="display:none"><circle cx="${W-2}" cy="2" r="10" fill="#5aa9ff"/>
+        <rect x="${W-6}" y="-3" width="2.6" height="10" fill="#0f1115"/><rect x="${W-0.6}" y="-3" width="2.6" height="10" fill="#0f1115"/></g>
+    </g>`}).join("");
+  SCHEMA.all.forEach(id => { const g=$("#n-"+id);
+    g.addEventListener("click",()=>openDrawer(id));
+    g.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" ") openDrawer(id) }) });
+}
+
+function renderGraph(){
+  for(const id of SCHEMA.all){
+    const ns = S.nodes[id], g = $("#n-"+id), [fill,stroke] = COL[ns.status]||COL.pending;
+    g.setAttribute("class", `node ${ns.status}${open===id?" selected":""}`);
+    const box = g.querySelector(".box"); box.setAttribute("fill",fill); box.setAttribute("stroke",stroke);
+    box.setAttribute("stroke-dasharray", ["paused","waiting","skipped"].includes(ns.status)?"6 4":"");
+    const p = ["done","skipped"].includes(ns.status)?1:ns.progress;
+    g.querySelector(".pb").setAttribute("width", (W-28)*p); g.querySelector(".pb").setAttribute("fill", stroke);
+    let sub = STATUS_TXT[ns.status];
+    if(ns.status==="skipped" && ns.note) sub += " · "+ns.note;
+    else if(ns.t0 && !["pending","paused","waiting","stopped"].includes(ns.status)) sub += " · " + fmtT(((ns.t1||Date.now()/1000) - ns.t0));
+    g.querySelector(".sub").textContent = sub.length>20? sub.slice(0,19)+"…" : sub;
+    g.querySelector(".sub").innerHTML += `<title>${esc(ns.note||"")}</title>`;
+    g.querySelector(".pct").textContent = ns.status==="running" ? Math.round(p*100)+"%" : "";
+    g.querySelector(".bp").style.display = S.config?.[id]?.breakpoint ? "" : "none";
+  }
+  for(const [a,b] of EDGES){
+    const e=$(`#e-${a}-${b}`), sa=S.nodes[a].status, sb=S.nodes[b].status;
+    e.setAttribute("class","edge"+(["running","waiting","paused"].includes(sb)&&["done","skipped"].includes(sa)?" active":
+      ["done","skipped"].includes(sa)&&["done","skipped","running","waiting","paused"].includes(sb)?" done":""));
+  }
+}
+
+/* ---------------------------------------------------------------- header */
+function renderHeader(){
+  const st = S.status, pill=$("#status");
+  pill.textContent = STATUS_TXT[st]||st; pill.className = "pill "+st;
+  const pct = Math.round(S.overall*100);
+  $("#overallBar").style.width = pct+"%";
+  $("#overallBar").style.background = st==="error"?"var(--red)":st==="done"?"var(--green)":"var(--orange)";
+  $("#overallPct").textContent = pct+"%";
+  $("#elapsed").textContent = S.t0 ? fmtT((S.t1||Date.now()/1000)-S.t0) + (S.run_id?" · "+S.run_id:"") : "";
+  $("#bPlay").disabled = S.busy;
+  $("#bPause").disabled = st!=="running";
+  $("#bResume").disabled = st!=="paused";
+  $("#bStop").disabled = !S.busy;
+}
+
+/* ---------------------------------------------------------------- bottom */
+let viewState = null;
+function renderBottom(){
+  const st = selectedRun ? viewState : S.state;
+  if(!st) return;
+  const live = !selectedRun && S.nodes.guion.status==="running";
+  $("#transcript").innerHTML = `<h2>Transcripción</h2>
+    <div class="who">${esc(st.personaje||"")}</div>
+    <div class="txt ${live?"live":""}">${esc(st.texto||"") || '<span style="color:var(--mut)">Aún no hay guion.</span>'}</div>
+    <dl>
+      <dt>Origen</dt><dd>${esc(st.texto_origen||"—")}</dd>
+      <dt>Duración</dt><dd>${st.duracion? st.duracion+" s":"—"}</dd>
+      <dt>Voz</dt><dd>${esc(st.voz||"—")}</dd>
+      <dt>Vídeo</dt><dd>${esc(st.video_final||"—")}</dd>
+    </dl>`;
+  const url = fileUrl(st.video_final);
+  if(url && url!==lastVideo){
+    lastVideo = url;
+    $("#stage").innerHTML = `<video controls playsinline src="${url}?v=${Date.now()}"></video>`;
+  } else if(!url && lastVideo){
+    lastVideo = ""; $("#stage").innerHTML = `<div class="empty">El vídeo aparecerá aquí al terminar el pipeline.</div>`;
+  }
+}
+async function loadRuns(){
+  const runs = await api("/api/runs"); const sel=$("#runSel"), cur=sel.value;
+  sel.innerHTML = `<option value="">Ejecución actual</option>` + runs.map(r =>
+    `<option value="${r.id}">${r.id} · ${esc(r.personaje)} · ${esc((r.texto||"").slice(0,50))}</option>`).join("");
+  sel.value = cur;
+}
+$("#runSel").onchange = async e => {
+  selectedRun = e.target.value;
+  viewState = selectedRun ? (await api("/api/runs/"+selectedRun)).state : null;
+  renderBottom();
+};
+$("#bRefresh").onclick = loadRuns;
+
+/* ---------------------------------------------------------------- drawer */
+function openDrawer(id){
+  open = id; tab = "config"; formDirty = false;
+  $("#drawer").classList.add("open"); $("#drawer").setAttribute("aria-hidden","false");
+  setTab("config"); renderGraph();
+}
+function closeDrawer(){
+  if(formDirty && !confirm("Hay cambios sin guardar. ¿Cerrar igualmente?")) return;
+  open = null; $("#drawer").classList.remove("open"); $("#drawer").setAttribute("aria-hidden","true"); renderGraph();
+}
+$("#dClose").onclick = closeDrawer;
+document.addEventListener("keydown", e => { if(e.key==="Escape" && open) closeDrawer() });
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setTab(b.dataset.tab));
+
+function setTab(t){
+  if(tab==="config" && t!=="config" && formDirty && !confirm("Hay cambios sin guardar en la configuración. ¿Descartarlos?")) return;
+  if(t!=="config") formDirty = false;
+  tab = t;
+  document.querySelectorAll(".tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab===t));
+  renderDrawer(true);
+}
+
+function renderDrawer(full){
+  if(!open || !S) return;
+  const spec = SCHEMA.nodes[open], ns = S.nodes[open];
+  $("#dTitle").textContent = spec.label; $("#dDesc").textContent = spec.desc;
+  $("#dStatus").textContent = STATUS_TXT[ns.status]; $("#dStatus").className = "pill "+ns.status;
+  const p = ["done","skipped"].includes(ns.status)?1:ns.progress;
+  $("#dBar").style.width = (p*100)+"%"; $("#dBar").style.background = (COL[ns.status]||COL.pending)[1];
+
+  if(tab==="config"){ if(full){ renderConfig(); } renderFoot(); return; }
+  if(tab==="logs"){
+    const body=$("#dBody"), atBottom = body.scrollTop + body.clientHeight >= body.scrollHeight - 30;
+    const lines = S.logs[open]||[];
+    const errBox = ns.error ? `<div class="err">${esc(ns.error)}</div>` : "";
+    const html = errBox + `<pre class="logs">${lines.length? esc(lines.join("\n")) : '<span style="color:var(--mut)">Sin salida todavía.</span>'}</pre>`;
+    if(body._last !== html){ body.innerHTML = html; body._last = html; if(atBottom||full) body.scrollTop = body.scrollHeight; }
+    renderFoot(); return;
+  }
+  if(tab==="state"){
+    const editable = S.status!=="running";
+    const ta = $("#stateEdit");
+    if(full || !ta || (document.activeElement!==ta && !ta._dirty)){
+      $("#dBody").innerHTML = `
+        <dl class="kv">
+          <dt>Estado del nodo</dt><dd>${STATUS_TXT[ns.status]}${ns.note? " · "+esc(ns.note):""}</dd>
+          <dt>Inicio</dt><dd>${ns.t0? new Date(ns.t0*1000).toLocaleTimeString():"—"}</dd>
+          <dt>Duración</dt><dd>${ns.t0? fmtT((ns.t1||Date.now()/1000)-ns.t0):"—"}</dd>
+          <dt>Run</dt><dd>${esc(S.run_id||"—")}</dd>
+        </dl>
+        ${ns.error? `<div class="err">${esc(ns.error)}</div>`:""}
+        <div class="field"><label>VideoState (objeto compartido entre nodos)${editable?" — editable":" — solo lectura mientras se ejecuta"}</label>
+        <textarea id="stateEdit" spellcheck="false" ${editable?"":"readonly"}>${esc(JSON.stringify(S.state,null,2))}</textarea></div>`;
+      const t2=$("#stateEdit"); t2.oninput = () => t2._dirty = true;
+    }
+    renderFoot(); return;
+  }
+}
+
+function fieldHtml(f, v){
+  const id = "f_"+f.key, help = f.help? `<small>${esc(f.help)}</small>`:"";
+  if(f.type==="checkbox") return `<div class="field check"><label><input type="checkbox" id="${id}" ${v?"checked":""}> ${esc(f.label)}</label>${help}</div>`;
+  if(f.type==="textarea") return `<div class="field"><label for="${id}">${esc(f.label)}</label><textarea id="${id}" rows="4">${esc(v)}</textarea>${help}</div>`;
+  if(f.type==="select") return `<div class="field"><label for="${id}">${esc(f.label)}</label><select id="${id}">${
+    f.options.map(o=>`<option ${String(o)===String(v)?"selected":""}>${esc(o)}</option>`).join("")}</select>${help}</div>`;
+  return `<div class="field"><label for="${id}">${esc(f.label)}</label><input id="${id}" type="${f.type==="number"?"number":"text"}" ${f.step?`step="${f.step}"`:f.type==="number"?'step="any"':""} value="${esc(v)}">${help}</div>`;
+}
+function renderConfig(){
+  const spec = SCHEMA.nodes[open], cfg = S.config[open] || {};
+  let html = "";
+  if(open==="revision" && S.nodes.revision.status==="waiting"){
+    html += `<div class="review"><h4>El pipeline espera tu revisión</h4>
+      <div class="field"><label for="revText">Guion (puedes corregirlo)</label><textarea id="revText" rows="6">${esc(S.state.texto||"")}</textarea></div>
+      <button class="primary" id="bApprove">✓ Aprobar y continuar</button></div>`;
+  }
+  if(open==="resultado"){
+    const url = fileUrl(S.state.video_final);
+    html += url ? `<p>Vídeo final:</p><p><a style="color:var(--gold)" href="${url}" download>${esc(S.state.video_final)}</a></p>`
+                : `<p style="color:var(--mut)">Todavía no hay vídeo final.</p>`;
+  }
+  html += spec.fields.map(f => fieldHtml(f, cfg[f.key])).join("");
+  if(SCHEMA.order.includes(open))
+    html += `<div class="field check bp"><label><input type="checkbox" id="f_breakpoint" ${cfg.breakpoint?"checked":""}> Breakpoint: pausar antes de este nodo</label>
+      <small>Al llegar aquí, el pipeline se detiene para que revises el estado o cambies la configuración.</small></div>`;
+  if(S.nodes[open].status==="running") html = `<div class="err" style="background:#2b1d0d;border-color:var(--orange);color:#ffd6ad">El nodo se está ejecutando: los cambios se aplicarán en la próxima ejecución.</div>` + html;
+  $("#dBody").innerHTML = html;
+  $("#dBody").querySelectorAll("input,textarea,select").forEach(el => { if(el.id!=="revText") el.addEventListener("input",()=>{ formDirty=true; renderFoot() }) });
+  const ap = $("#bApprove"); if(ap) ap.onclick = async () => { await api("/api/approve","POST",{texto:$("#revText").value}); toast("Guion aprobado") };
+}
+function readForm(){
+  const spec = SCHEMA.nodes[open], out = {};
+  for(const f of spec.fields){
+    const el = $("#f_"+f.key); if(!el) continue;
+    out[f.key] = f.type==="checkbox"? el.checked : f.type==="number"? Number(el.value) : el.value;
+  }
+  const bp = $("#f_breakpoint"); if(bp) out.breakpoint = bp.checked;
+  return out;
+}
+
+function renderFoot(){
+  const f = $("#dFoot"), canFrom = SCHEMA.order.includes(open) && S.run_id && !S.busy;
+  let h = "";
+  if(tab==="config" && (SCHEMA.nodes[open].fields.length || SCHEMA.order.includes(open))){
+    h += `<button class="primary" id="bSave" ${formDirty?"":"disabled"}>Guardar</button>
+          <button id="bReset" title="Restaurar valores por defecto">Por defecto</button>`;
+  }
+  if(tab==="state") h += `<button class="primary" id="bSaveState" ${S.status==="running"?"disabled":""}>Guardar estado</button>`;
+  if(SCHEMA.order.includes(open)) h += `<button id="bFrom" ${canFrom?"":"disabled"} title="Reejecuta desde este nodo usando el estado actual">↻ Ejecutar desde aquí</button>`;
+  if(open==="revision" && S.nodes.revision.status==="waiting" && tab!=="config") h += `<button class="primary" id="bApprove2">✓ Aprobar guion</button>`;
+  if(S.status==="paused" && S.current===open) h += `<button class="primary" id="bRes2">⏵ Continuar</button>`;
+  h += `<span class="msg" id="dMsg">${formDirty&&tab==="config"?"Cambios sin guardar":""}</span>`;
+  if(f._last === h) return; f._last = h; f.innerHTML = h;
+  const on = (id, fn) => { const b=$("#"+id); if(b) b.onclick = fn };
+  on("bSave", async () => { await api("/api/config/"+open,"PUT",readForm()); formDirty=false; S.config[open]={...S.config[open],...readForm()}; renderFoot(); toast("Configuración guardada") });
+  on("bReset", async () => { if(!confirm("¿Restaurar la configuración por defecto de este nodo?")) return;
+    S.config[open] = await api(`/api/config/${open}/reset`,"POST"); formDirty=false; renderConfig(); renderFoot(); toast("Restaurado") });
+  on("bSaveState", async () => { let v; try{ v = JSON.parse($("#stateEdit").value) }catch(e){ toast("JSON no válido: "+e.message); return }
+    await api("/api/state","POST",v); $("#stateEdit")._dirty=false; toast("Estado guardado") });
+  on("bFrom", async () => { if(formDirty && !confirm("Hay cambios sin guardar que no se usarán. ¿Seguir?")) return;
+    await api("/api/run","POST",{from:open}); toast("Ejecutando desde "+SCHEMA.nodes[open].label) });
+  on("bApprove2", async () => { await api("/api/approve","POST",{}); toast("Guion aprobado") });
+  on("bRes2", () => api("/api/resume","POST",{}));
+}
+
+/* ---------------------------------------------------------------- controls */
+$("#bPlay").onclick = async () => { selectedRun=""; $("#runSel").value=""; await api("/api/run","POST",{}) };
+$("#bPause").onclick = () => api("/api/pause","POST",{}).then(()=>toast("Se pausará antes del siguiente nodo"));
+$("#bResume").onclick = () => api("/api/resume","POST",{});
+$("#bStop").onclick = () => { if(confirm("¿Detener el pipeline? El nodo en curso se cancelará.")) api("/api/stop","POST",{}) };
+
+/* ---------------------------------------------------------------- live */
+let prevStatus = null, prevWaiting = false;
+function onSnapshot(snap){
+  S = snap;
+  renderHeader(); renderGraph(); renderBottom(); renderDrawer(false);
+  const waiting = S.nodes.revision.status==="waiting";
+  if(waiting && !prevWaiting && open!=="revision"){ openDrawer("revision"); toast("El guion espera tu revisión") }
+  if(S.status==="paused" && prevStatus!=="paused" && S.current){ toast("En pausa antes de «"+SCHEMA.nodes[S.current].label+"»") }
+  if(S.status==="done" && prevStatus && prevStatus!=="done"){ loadRuns(); toast("✓ Vídeo terminado") }
+  if(S.status==="error" && prevStatus!=="error" && prevStatus){ const n=SCHEMA.all.find(i=>S.nodes[i].status==="error"); if(n){ openDrawer(n); setTab("logs") } }
+  prevWaiting = waiting; prevStatus = S.status;
+}
+async function init(){
+  SCHEMA = await api("/api/schema");
+  buildGraph(); loadRuns();
+  const cfg = await api("/api/config");
+  const es = new EventSource("/api/events");
+  es.onmessage = e => { const snap = JSON.parse(e.data); snap.config = snap.config || cfg; onSnapshot(snap) };
+  es.onerror = () => { $("#status").textContent = "sin conexión"; $("#status").className = "pill error" };
+  setInterval(() => { if(S && S.busy){ renderHeader(); renderGraph() } }, 1000);
+}
+init();
+</script>
+</body>
+</html>

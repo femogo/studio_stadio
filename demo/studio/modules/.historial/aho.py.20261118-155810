@@ -1,0 +1,31 @@
+"""Aho — módulo del Estudio de agentes.
+
+Un módulo es un archivo .py con META (literal), CONFIG (lista de campos) y run(state, cfg, ctx).
+- state: dict plano con las claves del estado (en exec "proceso" solo llegan las de META["inputs"]).
+- cfg:   configuración del nodo ya resuelta (defaults de CONFIG → proyecto → ajustes).
+- ctx:   ctx.log(...), ctx.progress(0..1), ctx.update({...}) (vista previa), ctx.fill("{clave}", state),
+         ctx.path("ruta/relativa"), ctx.stream(cmd, cwd, on_line), ctx.run_dir, ctx.settings, ctx.node_id…
+Devuelve un dict con las claves que cambian (deben estar en META["outputs"] o en el esquema del proyecto) o None.
+"""
+
+META = {
+    "name": "Aho", "category": "General", "icon": "▣", "desc": "Describe aquí qué hace.",
+    "kind": "task",          # task | input | output | interrupt
+    "exec": "local",         # local (en el servidor) | proceso (subproceso aparte)
+    "interprete": "estudio", # solo exec proceso: estudio (3.12) | pesado (3.10 con torch)
+    "gpu": False,            # False | "shared" | "exclusive"
+    "inputs": ["texto"],
+    "outputs": ["resultado"],
+    "weight": 1,
+}
+
+CONFIG = [
+    {"key": "prefijo", "label": "Prefijo", "type": "text", "default": "", "help": "Texto que se antepone"},
+]
+
+
+def run(state, cfg, ctx):
+    texto = state.get("texto") or ""
+    ctx.log("Procesando", len(texto), "caracteres")
+    ctx.progress(0.5)
+    return {"resultado": cfg["prefijo"] + texto}

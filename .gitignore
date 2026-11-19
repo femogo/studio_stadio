@@ -1,0 +1,30 @@
+# Secretos y configuración local (el token se genera solo al primer arranque)
+demo/studio/settings.json
+*.env
+.env*
+
+# Entornos virtuales y cachés
+.venv/
+.venv-studio/
+__pycache__/
+.pytest_cache/
+
+# Datos de ejecución, logs y bases de datos locales
+demo/studio/data/
+*.log
+*.sqlite*
+
+# Modelos y pesos pesados (SadTalker, etc.)
+demo/SadTalker/checkpoints/
+demo/SadTalker/gfpgan/weights/
+
+# Artefactos generados (vídeo, audio, imágenes de demo)
+demo/out/
+demo/*.mp4
+demo/*.wav
+demo/*.png
+demo/test_st/
+
+# Repo de terceros (se clona aparte)
+demo/SadTalker/
+demo/studio/legacy/runs/

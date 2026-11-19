@@ -1,0 +1,36 @@
+{
+  "name": "Resumen de noticias (RSS)",
+  "desc": "RSS → resumen con el LLM → revisión humana (rechazar reescribe, máx. 3) → voz → audio.",
+  "template": "resumen_rss",
+  "icon": "📰",
+  "fase": 2,
+  "state_schema": {},
+  "context_schema": [],
+  "nodes": {
+    "entrada": {"module": "entrada.py", "label": "Entrada", "x": 40, "y": 160,
+                "config": {"valores": {"url_rss": "https://www.rtve.es/api/noticias.rss", "palabras": 80}}},
+    "rss": {"module": "rss_noticias.py", "label": "Noticias", "x": 240, "y": 160,
+            "config": {"url": "{url_rss}", "max": 5}},
+    "resumen": {"module": "llm_ollama.py", "label": "Resumen", "x": 440, "y": 160,
+                "config": {"prompt": "Resume en español, en unas {palabras} palabras y en tono de locutor de radio, estas noticias:\n{noticias_texto}\nSolo el texto que se leerá, sin títulos ni listas.\nVersión anterior (si la hay): {texto}\nComentario del revisor (si lo hay): {comentario_revision}",
+                           "campo_salida": "texto", "formato": "texto", "temperatura": 0.5, "num_predict": 300}},
+    "revision": {"module": "revision_humana.py", "label": "Revisión", "x": 640, "y": 160,
+                 "config": {"campo": "texto", "mensaje": "Revisa el resumen antes de locutarlo",
+                            "campo_comentario": "comentario_revision"}},
+    "voz": {"module": "tts_kokoro.py", "label": "Voz", "x": 840, "y": 160, "config": {"velocidad": 1.0}},
+    "salida": {"module": "salida.py", "label": "Salida", "x": 1040, "y": 160,
+               "config": {"mostrar": [{"clave": "audio", "como": "audio"}, {"clave": "texto", "como": "texto"}]}}
+  },
+  "edges": [
+    {"id": "e1", "src": "__start__", "dst": "entrada"},
+    {"id": "e2", "src": "entrada", "dst": "rss"},
+    {"id": "e3", "src": "rss", "dst": "resumen"},
+    {"id": "e4", "src": "resumen", "dst": "revision"},
+    {"id": "e5", "src": "revision", "dst": "voz", "cond": "s.get('aprobado')", "label": "aprobado"},
+    {"id": "e6", "src": "revision", "dst": "resumen", "cond": "not s.get('aprobado') and (s.get('rechazos') or 0) < 3", "label": "reescribir"},
+    {"id": "e7", "src": "revision", "dst": "__end__", "cond": "else", "label": "3 rechazos"},
+    {"id": "e8", "src": "voz", "dst": "salida"},
+    {"id": "e9", "src": "salida", "dst": "__end__"}
+  ],
+  "layout": {"zoom": 1.0, "pan": [0, 0]}
+}

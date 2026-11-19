@@ -1,0 +1,77 @@
+{
+  "run_id": "20261118-101613",
+  "status": "stopped",
+  "nodes": {
+    "entrada": {
+      "status": "done",
+      "progress": 1.0,
+      "t0": 1794996973.9098566,
+      "t1": 1794996973.909887,
+      "error": null,
+      "note": null
+    },
+    "guion": {
+      "status": "skipped",
+      "progress": 1.0,
+      "t0": 1794996973.9101105,
+      "t1": 1794996973.910118,
+      "error": null,
+      "note": "texto fijo"
+    },
+    "revision": {
+      "status": "stopped",
+      "progress": 0.0,
+      "t0": 1794996973.9103723,
+      "t1": 1794996992.7078125,
+      "error": null,
+      "note": "detenido por el usuario"
+    },
+    "voz": {
+      "status": "pending",
+      "progress": 0.0,
+      "t0": null,
+      "t1": null,
+      "error": null,
+      "note": null
+    },
+    "retrato": {
+      "status": "pending",
+      "progress": 0.0,
+      "t0": null,
+      "t1": null,
+      "error": null,
+      "note": null
+    },
+    "lipsync": {
+      "status": "pending",
+      "progress": 0.0,
+      "t0": null,
+      "t1": null,
+      "error": null,
+      "note": null
+    },
+    "montaje": {
+      "status": "pending",
+      "progress": 0.0,
+      "t0": null,
+      "t1": null,
+      "error": null,
+      "note": null
+    },
+    "resultado": {
+      "status": "pending",
+      "progress": 0.0,
+      "t0": null,
+      "t1": null,
+      "error": null,
+      "note": null
+    }
+  },
+  "state": {
+    "modo": "texto",
+    "personaje": "Cleopatra VII",
+    "tema": "Responde a Napoleón, que presume de su expedición a Egipto de 1798.",
+    "texto": "Napoleón, tú llegaste a Egipto con cañones y sabios. Yo lo goberné veinte años.",
+    "texto_origen": "manual"
+  }
+}

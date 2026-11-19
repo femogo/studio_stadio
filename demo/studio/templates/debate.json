@@ -1,0 +1,266 @@
+{
+  "name": "Debate histórico",
+  "icon": "🗣",
+  "fase": 3,
+  "desc": "Moderador (LLM) + 2 personajes por turnos: un clip por intervención con Send y montaje concatenado.",
+  "state_schema": {
+    "tema": {
+      "reducer": "replace",
+      "input": true
+    },
+    "clips": {
+      "reducer": "append"
+    },
+    "item": {
+      "reducer": "replace"
+    },
+    "video_final": {
+      "reducer": "replace",
+      "output": true
+    }
+  },
+  "context_schema": [],
+  "nodes": {
+    "entrada": {
+      "module": "entrada.py",
+      "label": "Entrada",
+      "x": 80,
+      "y": 200,
+      "config": {
+        "valores": {
+          "tema": "¿Quién gobernó mejor Egipto?",
+          "participantes": "Cleopatra VII y Napoleón Bonaparte",
+          "personajes": [
+            {
+              "nombre": "Cleopatra VII",
+              "imagen": "/opt/historico/demo/cleo_0.png",
+              "voz": "ef_dora"
+            },
+            {
+              "nombre": "Napoleón Bonaparte",
+              "imagen": "/opt/historico/demo/napoleon_demo.png",
+              "voz": "em_alex"
+            }
+          ],
+          "turnos": 2,
+          "palabras": 25
+        }
+      }
+    },
+    "moderador": {
+      "module": "llm_ollama.py",
+      "label": "Moderador",
+      "x": 280,
+      "y": 200,
+      "config": {
+        "prompt": "Eres el moderador de un debate histórico televisado entre {participantes} sobre: {tema}\nEscribe el debate con {turnos} intervenciones de cada personaje, alternándose (empieza el primero). Cada intervención: unas {palabras} palabras, en español, en primera persona, con datos históricos reales y respondiendo a la anterior.\nResponde SOLO con JSON: {\"intervenciones\": [{\"personaje\": \"nombre\", \"texto\": \"...\"}]}",
+        "formato": "json",
+        "claves_json": "intervenciones",
+        "temperatura": 0.7,
+        "num_predict": 900
+      }
+    },
+    "reparto": {
+      "module": "codigo_python.py",
+      "label": "Reparto",
+      "x": 480,
+      "y": 200,
+      "config": {
+        "codigo": "import unicodedata\ndef norm(x):\n    return \"\".join(c for c in unicodedata.normalize(\"NFD\", str(x or \"\").lower()) if unicodedata.category(c) != \"Mn\")\npers = state.get(\"personajes\") or []\nitems = []\nfor i, iv in enumerate(state.get(\"intervenciones\") or []):\n    nombre = iv.get(\"personaje\") if isinstance(iv, dict) else None\n    texto = (iv.get(\"texto\") if isinstance(iv, dict) else str(iv)) or \"\"\n    p = next((p for p in pers if norm(p.get(\"nombre\")) and (norm(p[\"nombre\"]) in norm(nombre) or norm(nombre) in norm(p[\"nombre\"]))), None)\n    p = p or (pers[i % len(pers)] if pers else {})\n    items.append({\"orden\": i, \"personaje\": p.get(\"nombre\") or nombre, \"texto\": texto.strip(),\n                  \"imagen\": p.get(\"imagen\"), \"voz\": p.get(\"voz\")})\nif not items:\n    raise ValueError(\"El moderador no devolvió intervenciones\")\nreturn {\"turnos_debate\": items}",
+        "entradas": "intervenciones,personajes",
+        "salidas": "turnos_debate"
+      }
+    },
+    "mapa": {
+      "module": "mapa_send.py",
+      "label": "Un clip por turno",
+      "x": 680,
+      "y": 200,
+      "config": {
+        "lista": "turnos_debate",
+        "destino": "intervencion",
+        "clave_item": "item"
+      }
+    },
+    "intervencion": {
+      "module": "subgrafo.py",
+      "label": "Intervención",
+      "x": 880,
+      "y": 200,
+      "config": {
+        "proyecto": "{slug}-intervencion"
+      }
+    },
+    "concat": {
+      "module": "concatenar_video.py",
+      "label": "Montaje",
+      "x": 1080,
+      "y": 200,
+      "config": {
+        "campo_clips": "clips",
+        "campo_salida": "video_final"
+      }
+    },
+    "salida": {
+      "module": "salida.py",
+      "label": "Salida",
+      "x": 1280,
+      "y": 200,
+      "config": {
+        "mostrar": [
+          {
+            "clave": "video_final",
+            "como": "video"
+          }
+        ]
+      }
+    }
+  },
+  "edges": [
+    {
+      "id": "e1",
+      "src": "__start__",
+      "dst": "entrada"
+    },
+    {
+      "id": "e2",
+      "src": "entrada",
+      "dst": "moderador"
+    },
+    {
+      "id": "e3",
+      "src": "moderador",
+      "dst": "reparto"
+    },
+    {
+      "id": "e4",
+      "src": "reparto",
+      "dst": "mapa"
+    },
+    {
+      "id": "e5",
+      "src": "mapa",
+      "dst": "intervencion"
+    },
+    {
+      "id": "e6",
+      "src": "intervencion",
+      "dst": "concat"
+    },
+    {
+      "id": "e7",
+      "src": "concat",
+      "dst": "salida"
+    },
+    {
+      "id": "e8",
+      "src": "salida",
+      "dst": "__end__"
+    }
+  ],
+  "layout": {
+    "zoom": 0.8,
+    "pan": [
+      0,
+      0
+    ]
+  },
+  "subproyectos": {
+    "intervencion": {
+      "name": "Intervención",
+      "desc": "Un turno del debate: voz del personaje → lip-sync. Lo usa el nodo subgrafo del debate.",
+      "state_schema": {
+        "item": {
+          "reducer": "replace",
+          "input": true
+        },
+        "clips": {
+          "reducer": "replace",
+          "output": true
+        }
+      },
+      "context_schema": [],
+      "nodes": {
+        "prep": {
+          "module": "codigo_python.py",
+          "label": "Preparar turno",
+          "x": 200,
+          "y": 160,
+          "config": {
+            "codigo": "it = state.get(\"item\") or {}\nreturn {\"texto\": it.get(\"texto\") or \"\", \"imagen\": it.get(\"imagen\"), \"voz_personaje\": it.get(\"voz\"),\n        \"orden\": it.get(\"orden\", 0)}",
+            "entradas": "item",
+            "salidas": "texto,imagen,voz_personaje,orden"
+          }
+        },
+        "voz": {
+          "module": "tts_kokoro.py",
+          "label": "Voz",
+          "x": 420,
+          "y": 160,
+          "config": {
+            "campo_texto": "texto",
+            "campo_voz": "voz_personaje",
+            "velocidad": 0.95
+          }
+        },
+        "lipsync": {
+          "module": "lipsync_sadtalker.py",
+          "label": "Lip-sync",
+          "x": 640,
+          "y": 160,
+          "config": {
+            "tam": 256,
+            "mejora": false,
+            "quieto": true,
+            "expresion": 1.1
+          }
+        },
+        "fin": {
+          "module": "codigo_python.py",
+          "label": "Clip",
+          "x": 860,
+          "y": 160,
+          "config": {
+            "codigo": "return {\"clips\": [{\"orden\": state.get(\"orden\", 0), \"video\": state.get(\"video_lipsync\"),\n                   \"duracion\": state.get(\"duracion\")}]}",
+            "entradas": "orden,video_lipsync,duracion",
+            "salidas": "clips"
+          }
+        }
+      },
+      "edges": [
+        {
+          "id": "e1",
+          "src": "__start__",
+          "dst": "prep"
+        },
+        {
+          "id": "e2",
+          "src": "prep",
+          "dst": "voz"
+        },
+        {
+          "id": "e3",
+          "src": "voz",
+          "dst": "lipsync"
+        },
+        {
+          "id": "e4",
+          "src": "lipsync",
+          "dst": "fin"
+        },
+        {
+          "id": "e5",
+          "src": "fin",
+          "dst": "__end__"
+        }
+      ],
+      "layout": {
+        "zoom": 1.0,
+        "pan": [
+          0,
+          0
+        ]
+      }
+    }
+  }
+}
